@@ -1,0 +1,21 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.afirez.wevideo.home.BlogFragment">
+
+    <ProgressBar
+        android:id="@+id/wv_main_pb_blog_progress"
+        style="?attr/android:horizontalScrollViewStyle"
+        android:layout_width="match_parent"
+        android:layout_height="2.5dp"
+        android:indeterminate="false"
+        android:indeterminateDrawable="@drawable/wv_main_bg_blog_progress"
+        android:max="100" />
+
+    <WebView
+        android:id="@+id/wv_main_wv_blog"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

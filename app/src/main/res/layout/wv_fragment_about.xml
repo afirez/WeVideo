@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.afirez.wevideo.home.AboutFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_launcher"
+            app:border_color="#ffffff"
+            app:border_overlay="true"
+            app:border_width="1dp" />
+        <TextView
+            android:textSize="16sp"
+            android:layout_margin="5dp"
+            android:gravity="center"
+            android:textColor="#ffffff"
+            android:text="Version 2.0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <TextView
+
+        android:textSize="20sp"
+        android:layout_margin="10dp"
+        android:textColor="@color/colorPrimary"
+        android:text="应用帮助和介绍"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <android.support.v7.widget.CardView
+        app:cardElevation="5dp"
+        app:cardCornerRadius="5dp"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <TextView
+            android:id="@+id/wv_main_tv_about_app_description"
+            android:text="@string/app_description"
+            android:textSize="12sp"
+            android:layout_margin="15dp"
+            android:textColor="#262626"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </android.support.v7.widget.CardView>
+</LinearLayout>

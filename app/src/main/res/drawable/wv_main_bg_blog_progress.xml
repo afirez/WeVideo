@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background"
+        android:drawable="@color/wv_main_bg_blog_progress">
+    </item>
+    <item android:id="@android:id/progress">
+        <shape>
+            <gradient android:startColor="@color/wv_main_fg_blog_progress_start_color"
+                android:centerColor="@color/wv_main_fg_blog_progress_center_color"
+                android:endColor="@color/wv_main_fg_blog_progress_end_color"/>
+        </shape>
+    </item>
+</layer-list>

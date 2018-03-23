@@ -7,6 +7,8 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.afirez.wevideo.home.MainActivity;
+
 public class SplashActivity extends AppCompatActivity {
 
     public static final int WHAT_START_GUIDE_ACTIVITY = 1;

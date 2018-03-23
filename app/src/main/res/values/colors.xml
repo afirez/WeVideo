@@ -3,4 +3,9 @@
     <color name="colorPrimary">#F5484C</color>
     <color name="colorPrimaryDark">#F5484C</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="wv_main_bg_blog_progress">#518b23</color>
+    <color name="wv_main_fg_blog_progress_start_color">#9cff4d</color>
+    <color name="wv_main_fg_blog_progress_center_color">#a2e66d</color>
+    <color name="wv_main_fg_blog_progress_end_color">#a2e66d</color>
 </resources>
