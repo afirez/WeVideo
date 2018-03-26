@@ -31,7 +31,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        setSupportActionBar();
+        setCommonSupportActionBar();
         setTitle(R.string.wv_main_home_title);
         dlDrawer = (DrawerLayout) findViewById(R.id.wv_main_dl_drawer);
         drawerToggle = new ActionBarDrawerToggle(

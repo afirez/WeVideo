@@ -13,4 +13,23 @@
         3、收藏影视剧、播放历史，一个不缺\n
         4、直播高清央视及卫视节目。\n
     </string>
+
+    <string name="wv_main_description_banner_a">三生三世十里桃花</string>
+    <string name="wv_main_description_banner_b">那片星空那片海</string>
+    <string name="wv_main_description_banner_c">大秦帝国之崛起</string>
+    <string name="wv_main_description_banner_d">射雕英雄传</string>
+    <string name="wv_main_description_banner_e">中国式相亲之奶茶大叔遭疯抢</string>
+
+    <string name="wv_main_channel_series">电视剧</string>
+    <string name="wv_main_channel_movie">电影</string>
+    <string name="wv_main_channel_comic">动漫</string>
+    <string name="wv_main_channel_documentary">纪录片</string>
+    <string name="wv_main_channel_music">音乐</string>
+    <string name="wv_main_channel_variety">综艺</string>
+    <string name="wv_main_channel_live">直播</string>
+    <string name="wv_main_channel_favorite">收藏</string>
+    <string name="wv_main_channel_history">历史</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
