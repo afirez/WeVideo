@@ -23,7 +23,8 @@
         <activity android:name=".Live.LiveActivity" />
         <activity android:name=".favorite.FavoriteActivity" />
         <activity android:name=".history.HistoryActivity" />
-        <activity android:name=".channel.ChannelDetailsActivity"></activity>
+        <activity android:name=".channel.ChannelDetailsActivity" />
+        <activity android:name=".channel.AlbumDetailActivity"/>
     </application>
 
 </manifest>
