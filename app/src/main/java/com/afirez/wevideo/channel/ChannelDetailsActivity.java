@@ -116,8 +116,8 @@ public class ChannelDetailsActivity extends BaseActivity {
 
     {
         fragments = new ArrayList<>();
-        fragments.add(SiteDetailsFragment.newInstance(0, channelId));
         fragments.add(SiteDetailsFragment.newInstance(1, channelId));
+        fragments.add(SiteDetailsFragment.newInstance(2, channelId));
     }
 
     private class SitePagerAdapter extends FragmentPagerAdapter {

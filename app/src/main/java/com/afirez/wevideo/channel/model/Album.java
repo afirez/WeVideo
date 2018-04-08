@@ -214,7 +214,8 @@ public class Album implements Parcelable {
         dest.writeString(this.letvStyle);
     }
 
-    public Album() {
+    public Album(int siteId) {
+        site =  new Site(siteId);
     }
 
     protected Album(Parcel in) {

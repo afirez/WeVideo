@@ -19,16 +19,6 @@ public abstract class LoadMoreHolder extends RecyclerHolder implements LoadMoreH
     private OnLoadMoreListener onLoadMoreListener;
 
     @Override
-    public boolean canLoadMore() {
-        return canLoadMore;
-    }
-
-    @Override
-    public void canLoadMore(boolean canLoadMore) {
-        this.canLoadMore = canLoadMore;
-    }
-
-    @Override
     public boolean isLoading() {
         return isLoading;
     }
@@ -40,12 +30,16 @@ public abstract class LoadMoreHolder extends RecyclerHolder implements LoadMoreH
 
     @Override
     public void loadMore() {
-        setLoading(true);
+//        setLoading(true);
+//        OnLoadMoreListener onLoadMoreListener = getOnLoadMoreListener();
+//        if (onLoadMoreListener != null) {
+//            onLoadMoreListener.onLoadMore(this);
+//        } else {
+//            setLoading(false);
+//        }
         OnLoadMoreListener onLoadMoreListener = getOnLoadMoreListener();
         if (onLoadMoreListener != null) {
             onLoadMoreListener.onLoadMore(this);
-        } else {
-            setLoading(false);
         }
     }
 
@@ -59,8 +53,4 @@ public abstract class LoadMoreHolder extends RecyclerHolder implements LoadMoreH
         return onLoadMoreListener;
     }
 
-    @Override
-    public void onLoadComplete(int code) {
-        setLoading(false);
-    }
 }

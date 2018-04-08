@@ -52,7 +52,7 @@ public class HomeFragment extends BaseFragment {
         loopViewPager = (LoopViewPager) findViewById(R.id.wv_main_vp_banner);
         indicatorBanner = (CircleIndicator) findViewById(R.id.wv_main_indicator_banner);
         loopViewPager.setAdapter(new BannerAdapter());
-        loopViewPager.setLooperPic(true);
+        loopViewPager.setLooperPic(false);
         indicatorBanner.setViewPager(loopViewPager);
         gvChannels = (GridView) findViewById(R.id.wv_main_gv_channels);
         gvChannels.setAdapter(new ChannelAdapter());

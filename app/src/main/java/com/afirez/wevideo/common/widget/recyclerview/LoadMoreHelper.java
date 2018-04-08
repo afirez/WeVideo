@@ -6,10 +6,6 @@ package com.afirez.wevideo.common.widget.recyclerview;
 
 public interface LoadMoreHelper {
 
-    boolean canLoadMore();
-
-    void canLoadMore(boolean canLoadMore);
-
     boolean isLoading();
 
     void setLoading(boolean isLoading);
@@ -19,8 +15,6 @@ public interface LoadMoreHelper {
     void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener);
 
     OnLoadMoreListener getOnLoadMoreListener();
-
-    void onLoadComplete(int state);
 
     interface OnLoadMoreListener {
         void onLoadMore(LoadMoreHelper helper);

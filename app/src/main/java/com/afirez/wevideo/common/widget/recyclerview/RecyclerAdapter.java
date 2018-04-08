@@ -6,7 +6,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,9 +20,10 @@ import java.lang.reflect.Constructor;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
 
     public static final int STATE_NORMAL = 0;
-    public static final int STATE_UNKNOWN_ERROR = 1;
-    public static final int STATE_NETWORK_ERROR = 2;
-    public static final int STATE_EMPTY_DATA = 3;
+    public static final int STATE_LOAD_MORE = 1;
+    public static final int STATE_UNKNOWN_ERROR = 2;
+    public static final int STATE_NETWORK_ERROR = 3;
+    public static final int STATE_EMPTY_DATA = 4;
 
     private int state;
 
@@ -33,7 +33,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
 
     public void setState(int state) {
         this.state = state;
-        notifyDataSetChanged();
     }
 
     private RecyclerView.Adapter<? extends RecyclerHolder> adapter;
@@ -65,7 +64,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
     private int emptyDataLayoutId;
 
     private Class<? extends RecyclerHolder> class_LoadMoreHolder;
-    private Class<? extends RecyclerHolder> class_UnknowErrorHolder;
+    private Class<? extends RecyclerHolder> class_UnknownErrorHolder;
     private Class<? extends RecyclerHolder> class_NetworkErrorHolder;
     private Class<? extends RecyclerHolder> class_EmptyDataHolder;
 
@@ -77,7 +76,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
 
     public void registerUnknownErrorHolder(@LayoutRes int id, Class<? extends RecyclerHolder> clazz) {
         unknownErrorLayoutId = id;
-        class_UnknowErrorHolder = clazz;
+        class_UnknownErrorHolder = clazz;
     }
 
     public void registerNetworkErrorHolder(@LayoutRes int id, Class<? extends RecyclerHolder> clazz) {
@@ -112,25 +111,33 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
     @Override
     public RecyclerHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         RecyclerHolder holder;
-        if (state == STATE_UNKNOWN_ERROR
-                || state == STATE_NETWORK_ERROR
-                || state == STATE_EMPTY_DATA) {
+        Class<? extends RecyclerHolder> clazz = null;
+        if (viewType == loadMoreLayoutId) {
+            clazz = class_LoadMoreHolder;
+        } else if (viewType == emptyDataLayoutId) {
+            clazz = class_EmptyDataHolder;
+        } else if (viewType == networkErrorLayoutId) {
+            clazz = class_NetworkErrorHolder;
+        } else if (viewType == unknownErrorLayoutId) {
+            clazz = class_UnknownErrorHolder;
+        }
+        if (clazz != null) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             View view = inflater.inflate(viewType, parent, false);
             try {
                 Constructor<? extends RecyclerHolder> constructor =
-                        RecyclerHolder.class.getConstructor(View.class);
+                        clazz.getConstructor(View.class);
                 holder = constructor.newInstance(view);
             } catch (Throwable e) {
                 e.printStackTrace();
-                throw new IllegalStateException("Illegal Holder");
+                throw new IllegalStateException("Illegal Holder: " + clazz);
             }
         } else {
             holder = adapter.onCreateViewHolder(parent, viewType);
         }
         onViewHolderCreated(holder, viewType);
         return holder;
-}
+    }
 
     public void onViewHolderCreated(RecyclerHolder holder, int viewType) {
         if (holder instanceof LoadMoreHelper) {
@@ -154,7 +161,20 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerHolder holder, int position) {
+        if (onBindViewHolderListener != null) {
+            onBindViewHolderListener.onBindViewHolder(holder, position);
+        }
         holder.onBind(position);
+    }
+
+    private OnBindViewHolderListener onBindViewHolderListener;
+
+    public void setOnBindViewHolderListener(OnBindViewHolderListener onBindViewHolderListener) {
+        this.onBindViewHolderListener = onBindViewHolderListener;
+    }
+
+    public interface OnBindViewHolderListener {
+        void onBindViewHolder(RecyclerHolder holder, int position);
     }
 
     @Override
@@ -174,18 +194,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
     @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (loadMoreHelper != null && loadMoreHelper.isLoading()) {
-                    return true;
-                }
-                return false;
-            }
-        });
         recyclerView.addOnScrollListener(loadMoreOnScrollListener);
         RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-        if (layoutManager instanceof GridLayoutManager) {
+        if (layoutManager != null && layoutManager instanceof GridLayoutManager) {
             final GridLayoutManager glm = (GridLayoutManager) layoutManager;
             final GridLayoutManager.SpanSizeLookup spanSizeLookup = glm.getSpanSizeLookup();
             glm.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -196,13 +207,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
                             || state == STATE_EMPTY_DATA
                             || adapter == null
                             || adapter.getItemCount() == 0
-                            || position == adapter.getItemCount() + 1) {
-                        return 1;
+                            || position == adapter.getItemCount()) {
+                        return glm.getSpanCount();
                     }
                     if (spanSizeLookup != null) {
                         return spanSizeLookup.getSpanSize(position);
                     }
-                    return glm.getSpanCount();
+                    return 1;
                 }
             });
         }
@@ -223,9 +234,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
     public void loadMore() {
         if (state == STATE_NORMAL
                 && onLoadMoreListener != null
-                && loadMoreHelper != null
-                && loadMoreHelper.canLoadMore()
-                && !loadMoreHelper.isLoading()) {
+                && loadMoreHelper != null) {
             loadMoreHelper.loadMore();
         }
     }
@@ -247,21 +256,25 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerHolder> {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
             super.onScrollStateChanged(recyclerView, newState);
-            if (loadMoreHelper == null) {
-                throw new IllegalStateException("MyLoadMoreHolder must implement LoadMoreHelper");
-            }
+//            if (loadMoreHelper == null) {
+//                return;
+//                throw new IllegalStateException("MyLoadMoreHolder must implement LoadMoreHelper");
+//            }
             if (state == STATE_NORMAL
-                    && loadMoreHelper.canLoadMore()
-                    && !loadMoreHelper.isLoading()
+                    && dy > 0
+                    && loadMoreHelper != null
                     && newState == RecyclerView.SCROLL_STATE_IDLE
                     && lastCompletelyVisibleItemPosition == adapter.getItemCount()) {
                 loadMoreHelper.loadMore();
             }
         }
 
+        private int dy;
+
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
+            this.dy = dy;
             RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
             if (layoutManager instanceof LinearLayoutManager) {
                 LinearLayoutManager llm = (LinearLayoutManager) layoutManager;

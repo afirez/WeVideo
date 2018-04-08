@@ -7,11 +7,13 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +21,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.afirez.wevideo.R;
+import com.afirez.wevideo.api.ApiCallback;
+import com.afirez.wevideo.api.SiteApi;
+import com.afirez.wevideo.api.SiteApis;
 import com.afirez.wevideo.channel.model.Album;
+import com.afirez.wevideo.channel.model.ErrorInfo;
 import com.afirez.wevideo.channel.model.Site;
 import com.afirez.wevideo.common.BaseFragment;
 import com.afirez.wevideo.common.widget.recyclerview.LoadMoreHelper;
@@ -35,8 +41,10 @@ import java.util.ArrayList;
  */
 public class SiteDetailsFragment extends BaseFragment {
 
+    private static final String TAG = "afirez";
 
     private RecyclerAdapter recyclerAdapter;
+    private AlbumAdapter adapter;
 
     public static SiteDetailsFragment newInstance(int siteId, int channelId) {
         Bundle args = new Bundle();
@@ -92,41 +100,63 @@ public class SiteDetailsFragment extends BaseFragment {
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), spanCount);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvItems.setLayoutManager(layoutManager);
-        AlbumAdapter adapter = new AlbumAdapter();
+        adapter = new AlbumAdapter();
         recyclerAdapter = new RecyclerAdapter(adapter);
         recyclerAdapter.setOnLoadMoreListener(onLoadMoreListener);
         rvItems.setAdapter(recyclerAdapter);
+//        srlRefresh.postDelayed(refreshRunnable, DURATION_REFRESH);
     }
 
-    private static final int DURATION_REFRESH = 1500;
-
-    private static final int DURATION_LOAD_MORE = 3000;
-
     private Handler handler = new Handler(Looper.getMainLooper());
+
+
+    private SwipeRefreshLayout.OnRefreshListener onRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+//            Log.e(TAG, "onRefresh: ", new RuntimeException("refresh"));
+//            handler.removeCallbacks(refreshRunnable);
+            if (srlRefresh != null) {
+                srlRefresh.post(refreshRunnable);
+            }
+        }
+    };
 
     private Runnable refreshRunnable = new Runnable() {
         @Override
         public void run() {
             LoadMoreHelper loadMoreHelper = recyclerAdapter.getLoadMoreHelper();
-            if (srlRefresh.isRefreshing()
-                    || loadMoreHelper == null
-                    || loadMoreHelper.isLoading()) {
+            if (loadMoreHelper != null && loadMoreHelper.isLoading()) {
+                if (srlRefresh != null && srlRefresh.isRefreshing()) {
+                    srlRefresh.setRefreshing(false);
+                }
                 return;
             }
-            srlRefresh.setRefreshing(true);
+            if (!srlRefresh.isRefreshing()) {
+                srlRefresh.setRefreshing(true);
+                Log.i(TAG, "run: setRefreshing: " + true);
+            }
             refresh();
         }
     };
 
     private void refresh() {
-
+        if (siteId == Site.LETV) { // 乐视下相关频道2列
+            spanCount = 2;
+        } else {
+            spanCount = 3;
+        }
+        page = 0;
+        albums.clear();
+        loadMore();
     }
 
-    private SwipeRefreshLayout.OnRefreshListener onRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+
+    private LoadMoreHelper.OnLoadMoreListener onLoadMoreListener = new LoadMoreHelper.OnLoadMoreListener() {
         @Override
-        public void onRefresh() {
-            handler.removeCallbacks(refreshRunnable);
-            handler.postDelayed(refreshRunnable, DURATION_REFRESH);
+        public void onLoadMore(LoadMoreHelper helper) {
+            if (rvItems != null) {
+                rvItems.post(loadMoreRunnable);
+            }
         }
     };
 
@@ -140,19 +170,57 @@ public class SiteDetailsFragment extends BaseFragment {
                 return;
             }
             loadMoreHelper.setLoading(true);
+            recyclerAdapter.setState(RecyclerAdapter.STATE_NORMAL);
             loadMore();
         }
     };
 
+    private volatile int page;
+    private int pageSize = 30;
+
     private void loadMore() {
-        
+        page++;
+        SiteApis.getInstance().getChannelAlbums(siteId, channelId, page, pageSize, albumsCallback);
     }
 
-    private LoadMoreHelper.OnLoadMoreListener onLoadMoreListener = new LoadMoreHelper.OnLoadMoreListener() {
+
+    private ApiCallback<ArrayList<Album>> albumsCallback = new ApiCallback<ArrayList<Album>>() {
         @Override
-        public void onLoadMore(LoadMoreHelper helper) {
-            handler.removeCallbacks(loadMoreRunnable);
-            handler.postDelayed(loadMoreRunnable, DURATION_LOAD_MORE);
+        public void onSuccess(final ArrayList<Album> data) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    LoadMoreHelper loadMoreHelper = recyclerAdapter.getLoadMoreHelper();
+                    if (loadMoreHelper != null && loadMoreHelper.isLoading()) {
+                        loadMoreHelper.setLoading(false);
+                    }
+                    if (srlRefresh != null) {
+                        srlRefresh.setRefreshing(false);
+                    }
+                    albums.addAll(data);
+                    recyclerAdapter.setState(RecyclerAdapter.STATE_NORMAL);
+                    recyclerAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+
+        @Override
+        public void onError(ErrorInfo info) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    LoadMoreHelper loadMoreHelper = recyclerAdapter.getLoadMoreHelper();
+                    if (loadMoreHelper != null && loadMoreHelper.isLoading()) {
+                        loadMoreHelper.setLoading(false);
+                    }
+                    if (srlRefresh != null) {
+                        srlRefresh.setRefreshing(false);
+                        Log.i(TAG, "run: setRefreshing: " + false);
+                    }
+                    recyclerAdapter.setState(RecyclerAdapter.STATE_NETWORK_ERROR);
+                    recyclerAdapter.notifyDataSetChanged();
+                }
+            });
         }
     };
 
@@ -188,14 +256,18 @@ public class SiteDetailsFragment extends BaseFragment {
         private final ImageView ivPoster;
         private final TextView tvTip;
         private final TextView tvName;
+        private final ConstraintLayout clRoot;
 
         public AlbumHolder(View itemView) {
             super(itemView);
+            clRoot = (ConstraintLayout) itemView;
             ivPoster = (ImageView) findViewById(R.id.wv_channel_details_iv_album_poster);
             tvTip = (TextView) findViewById(R.id.wv_channel_details_tv_album_tip);
             tvName = (TextView) findViewById(R.id.wv_channel_details_tv_album_name);
             itemView.setOnClickListener(albumOnClickListener);
         }
+
+        private ConstraintSet constraintSet;
 
         public void onBind(int position) {
             Album album = albums.get(position);
@@ -208,12 +280,12 @@ public class SiteDetailsFragment extends BaseFragment {
             tvName.setText(album.getTitle());
             int hRatio = spanCount == 2 ? 2 : 4;
             String ratio = "3:" + hRatio;
-            ConstraintLayout.LayoutParams layoutParams =
-                    (ConstraintLayout.LayoutParams) ivPoster.getLayoutParams();
-            if (!ratio.equals(layoutParams.dimensionRatio)) {
-                layoutParams.dimensionRatio = "3:" + hRatio;
-                ivPoster.setLayoutParams(layoutParams);
+            if (constraintSet == null) {
+                constraintSet = new ConstraintSet();
             }
+            constraintSet.clone(clRoot);
+            constraintSet.setDimensionRatio(R.id.wv_channel_details_iv_album_poster, ratio);
+            constraintSet.applyTo(clRoot);
             if (album.getVerImgUrl() != null) {
                 ImageUtils.load(ivPoster, album.getVerImgUrl());
             } else if (album.getHorImgUrl() != null) {
