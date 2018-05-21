@@ -16,4 +16,6 @@ public interface SiteApi {
             int pageSize,
             ApiCallback<ArrayList<Album>> callback
     );
+
+    void getAlbumDetail(Album album, ApiCallback<Album> callback);
 }

@@ -10,6 +10,7 @@ import com.afirez.wevideo.common.utils.GsonSerializer;
 import com.afirez.wevideo.common.utils.OkHttpUtils;
 import com.afirez.wevideo.home.model.Channel;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
@@ -92,11 +93,11 @@ public class SohuApi implements SiteApi {
                 Gson gson = GsonSerializer.getInstance().getGson();
                 String json = body.string();
                 Log.i(TAG, "onResponse: " + json);
-                SohuApiResult<SohuAlbum> apiResult = null;
+                SohuApiResults<SohuAlbum> apiResult = null;
                 try {
                     apiResult = gson.fromJson(
                             json,
-                            new TypeToken<SohuApiResult<SohuAlbum>>() {
+                            new TypeToken<SohuApiResults<SohuAlbum>>() {
                             }.getType()
                     );
                 } catch (Throwable throwable) {
@@ -169,8 +170,8 @@ public class SohuApi implements SiteApi {
         return info;
     }
 
-    private ArrayList<Album> albumsOf(SohuApiResult<SohuAlbum> result) {
-        SohuApiResult.Data<SohuAlbum> sohuAlbumData = result.getData();
+    private ArrayList<Album> albumsOf(SohuApiResults<SohuAlbum> result) {
+        SohuApiResults.Data<SohuAlbum> sohuAlbumData = result.getData();
         if (sohuAlbumData != null) {
             ArrayList<SohuAlbum> sohuAlbums = sohuAlbumData.getAlbums();
             if (sohuAlbums != null && sohuAlbums.size() > 0) {
@@ -194,5 +195,60 @@ public class SohuApi implements SiteApi {
             }
         }
         return null;
+    }
+
+    @Override
+    public void getAlbumDetail(final Album album, final ApiCallback<Album> callback) {
+        final String url = API_ALBUM_INFO + album.getAlbumId() + ".json?" + API_KEY;
+        if (callback == null) {
+            return;
+        }
+        OkHttpUtils.execute(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ErrorInfo info = buildErrorInfo(url, "onGetAlbumDetail", e, ErrorInfo.ERROR_TYPE_URL);
+                callback.onError(info);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null || !response.isSuccessful()) {
+                    ErrorInfo info = buildErrorInfo(url, "onGetAlbumDetail", null, ErrorInfo.ERROR_TYPE_HTTP);
+                    callback.onError(info);
+                    return;
+                }
+                String json = body.string();
+                Gson gson = GsonSerializer.getInstance().getGson();
+                SohuApiResult<SohuAlbum> result = null;
+                try {
+                    result = gson.fromJson(json, new TypeToken<SohuApiResult<SohuAlbum>>() {
+                    }.getType());
+                } catch (JsonSyntaxException e) {
+                    e.printStackTrace();
+                }
+
+                if (result == null) {
+                    ErrorInfo info = buildErrorInfo(
+                            url,
+                            "getAlbumDetail",
+                            null,
+                            ErrorInfo.ERROR_TYPE_DATA_CONVERT
+                    );
+                    callback.onError(info);
+                    return;
+                }
+                if (result.getData() != null) {
+                    if (result.getData().getLastVideoCount() > 0) {
+                        album.setVideoTotal(result.getData().getLastVideoCount());
+                    } else {
+                        album.setVideoTotal(result.getData().getTotalVideoCount());
+                    }
+                }
+                callback.onSuccess(album);
+
+            }
+        });
+
     }
 }

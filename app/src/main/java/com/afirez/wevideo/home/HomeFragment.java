@@ -42,7 +42,7 @@ public class HomeFragment extends BaseFragment {
     }
 
     @Override
-    protected int getLayoutId() {
+    protected int layoutId() {
         return R.layout.wv_fragment_home;
     }
 

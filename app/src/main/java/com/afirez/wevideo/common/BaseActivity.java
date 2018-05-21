@@ -19,12 +19,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Activities.getInstance().add(this);
-        setContentView(getLayoutId());
+        setContentView(layoutId());
         initView();
         initData();
     }
 
-    protected abstract int getLayoutId();
+    protected abstract int layoutId();
 
     protected abstract void initView();
 

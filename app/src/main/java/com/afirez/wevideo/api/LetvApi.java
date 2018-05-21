@@ -1,5 +1,6 @@
 package com.afirez.wevideo.api;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.afirez.wevideo.channel.model.Album;
@@ -160,7 +161,7 @@ public class LetvApi implements SiteApi {
         OkHttpUtils.execute(url, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                ErrorInfo info = buildErrorInfo(url, "doGetChannelAlbumsByUrl", e, ErrorInfo.ERROR_TYPE_URL);
+                ErrorInfo info = buildErrorInfo(url, "fetchChannelAlbums", e, ErrorInfo.ERROR_TYPE_URL);
                 callback.onError(info);
             }
 
@@ -168,7 +169,7 @@ public class LetvApi implements SiteApi {
             public void onResponse(Call call, Response response) throws IOException {
                 ResponseBody body = response.body();
                 if (body == null || !response.isSuccessful()) {
-                    ErrorInfo info = buildErrorInfo(url, "doGetChannelAlbumsByUrl", null, ErrorInfo.ERROR_TYPE_HTTP);
+                    ErrorInfo info = buildErrorInfo(url, "fetchChannelAlbums", null, ErrorInfo.ERROR_TYPE_HTTP);
                     callback.onError(info);
                     return;
                 }
@@ -195,13 +196,13 @@ public class LetvApi implements SiteApi {
                         if (list.size() > 0) {
                             callback.onSuccess(list);
                         } else {
-                            ErrorInfo info = buildErrorInfo(url, "doGetChannelAlbumsByUrl", null, ErrorInfo.ERROR_TYPE_DATA_CONVERT);
+                            ErrorInfo info = buildErrorInfo(url, "fetchChannelAlbums", null, ErrorInfo.ERROR_TYPE_DATA_CONVERT);
                             callback.onError(info);
                         }
                     }
                 } catch (Throwable e) {
                     e.printStackTrace();
-                    ErrorInfo info = buildErrorInfo(url, "doGetChannelAlbumsByUrl", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
+                    ErrorInfo info = buildErrorInfo(url, "fetchChannelAlbums", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
                     callback.onError(info);
 
                 }
@@ -217,5 +218,62 @@ public class LetvApi implements SiteApi {
         info.setTag(TAG);
         info.setClassName(TAG);
         return info;
+    }
+
+    @Override
+    public void getAlbumDetail(final Album album, final ApiCallback<Album> callback) {
+        final String url = String.format(ALBUM_DESC_URL_FORMAT, album.getAlbumId());
+        if (url == null || url.length() == 0 || callback == null) {
+            return;
+        }
+        OkHttpUtils.execute(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ErrorInfo errorInfo = buildErrorInfo(url, "getAlbumDetail", null, ErrorInfo.ERROR_TYPE_URL);
+                callback.onError(errorInfo);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null || !response.isSuccessful()) {
+                    ErrorInfo errorInfo = buildErrorInfo(url, "getAlbumDetail", null, ErrorInfo.ERROR_TYPE_HTTP);
+                    callback.onError(errorInfo);
+                    return;
+                }
+
+                String json = body.string();
+                try {
+                    JSONObject albumJson = new JSONObject(json);
+                    if (albumJson.optJSONObject("body") != null) {
+                        JSONObject albumJsonBody = albumJson.optJSONObject("body");
+                        if (albumJsonBody.optJSONObject("picCollections") != null) {
+                            JSONObject jsonImg = albumJsonBody.optJSONObject("picCollections");
+                            if (!TextUtils.isEmpty(jsonImg.optString("150*200"))) {
+                                album.setHorImgUrl(StringEscapeUtils.unescapeJava(jsonImg.optString("150*200")));
+                            }
+                        }
+                        if (!TextUtils.isEmpty(albumJsonBody.optString("description"))) {
+                            album.setAlbumDesc(albumJsonBody.optString("description"));
+                        }
+                        if (!TextUtils.isEmpty(albumJsonBody.optString("nowEpisodes"))) {
+                            album.setVideoTotal(Integer.parseInt(albumJsonBody.optString("nowEpisodes")));
+                        }
+                        //directory starring
+                        if (!TextUtils.isEmpty(albumJsonBody.optString("directory"))) {
+                            album.setDirector(albumJsonBody.optString("directory"));
+                        }
+                        if (!TextUtils.isEmpty(albumJsonBody.optString("starring"))) {
+                            album.setMainActor(albumJsonBody.optString("starring"));
+                        }
+                        callback.onSuccess(album);
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    ErrorInfo info = buildErrorInfo(url, "getAlbumDetail", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
+                    callback.onError(info);
+                }
+            }
+        });
     }
 }

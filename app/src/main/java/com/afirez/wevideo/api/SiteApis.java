@@ -58,4 +58,24 @@ public class SiteApis {
             }
         }
     }
+
+    public void getAlbumDetail(Album album, ApiCallback<Album> callback) {
+        int siteId = album.getSite().getSiteId();
+        SiteApi siteApi = null;
+        switch (siteId) {
+            case Site.LETV:
+                siteApi = this.letvApi;
+                break;
+            case Site.SOHU:
+                siteApi = this.sohuApi;
+                break;
+        }
+        if (siteApi != null) {
+            siteApi.getAlbumDetail(album, callback);
+        } else {
+            if (callback != null) {
+                callback.onError(new ErrorInfo(siteId, ErrorInfo.ERROR_TYPE_URL));
+            }
+        }
+    }
 }

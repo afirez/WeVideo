@@ -83,7 +83,7 @@ public class SiteDetailsFragment extends BaseFragment {
     private RecyclerView rvItems;
 
     @Override
-    protected int getLayoutId() {
+    protected int layoutId() {
         return R.layout.wv_channel_details_fragment_site_details;
     }
 

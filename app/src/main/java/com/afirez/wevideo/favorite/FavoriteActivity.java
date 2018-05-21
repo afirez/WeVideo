@@ -15,7 +15,7 @@ public class FavoriteActivity extends BaseActivity {
     }
 
     @Override
-    protected int getLayoutId() {
+    protected int layoutId() {
         return R.layout.wv_activity_favorite;
     }
 

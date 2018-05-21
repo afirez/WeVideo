@@ -23,13 +23,13 @@ public abstract class BaseFragment extends Fragment {
             @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(getLayoutId(), container, false);
+        view = inflater.inflate(layoutId(), container, false);
         initView();
         initData();
         return view;
     }
 
-    protected abstract int getLayoutId();
+    protected abstract int layoutId();
 
     protected abstract void initView();
 

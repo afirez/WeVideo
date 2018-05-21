@@ -25,7 +25,7 @@ public class MainActivity extends BaseActivity {
     private Fragment currentFragment;
 
     @Override
-    protected int getLayoutId() {
+    protected int layoutId() {
         return R.layout.wv_activity_main;
     }
 
