@@ -52,7 +52,7 @@ public class PositionData {
      * 水平方向上终点位置
      * @return
      */
-    public int horizonalCenter() {
+    public int horizontalCenter() {
         return mLeft + width() / 2;
     }
 

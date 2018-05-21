@@ -12,8 +12,8 @@ import java.util.Iterator;
 
 public class AppHelper {
 
-
     private static volatile AppHelper sInstance;
+
     private Application app;
 
     public static AppHelper getInstance() {
@@ -99,8 +99,8 @@ public class AppHelper {
 
         void attachBaseContext(Application app, Context base);
 
-        void onTerminate(Application app);
-
         void onCreate(Application app);
+
+        void onTerminate(Application app);
     }
 }

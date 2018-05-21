@@ -103,7 +103,7 @@ public class ViewPagerIndicatorHelper {
                 }
                 boolean deSelected = mDeSelectedItems.get(i);
                 if (!deSelected) {
-                    mScrollListener.onDisSelected(i, mTotalCount);
+                    mScrollListener.onUnselected(i, mTotalCount);
                 }
                 Float leavedPercent = mLeavePercents.get(i, 0.0f);
                 if (leavedPercent != 1.0f) {
@@ -135,7 +135,7 @@ public class ViewPagerIndicatorHelper {
                 }
                 boolean disSelected = mDeSelectedItems.get(i);
                 if (!disSelected) {
-                    mScrollListener.onDisSelected(i, mTotalCount);
+                    mScrollListener.onUnselected(i, mTotalCount);
                     mDeSelectedItems.put(i, true);
                 }
             }

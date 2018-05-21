@@ -125,7 +125,7 @@ public class ViewPagerIndicatorLayout extends FrameLayout implements IPagerIndic
             //准备indicator的数据
             preParePositionData();
             if (mIndicator != null) {
-                mIndicator.setPostionDataList(mPositionData);
+                mIndicator.setPositionDataList(mPositionData);
             }
             if (mViewPagerIndicatorHelper.getScrollState() == ViewPager.SCROLL_STATE_IDLE) {
                 // 通知onPageScolled,onPageSelected
@@ -195,19 +195,19 @@ public class ViewPagerIndicatorLayout extends FrameLayout implements IPagerIndic
     }
 
     /**
-     * 通知title onDisSelected
+     * 通知title onUnselected
      * @param index
      * @param totalCount
      */
     @Override
-    public void onDisSelected(int index, int totalCount) {
+    public void onUnselected(int index, int totalCount) {
         if (mAdapter != null) {
             if (mTitleContainer == null) {
                 return;
             }
             View v = mTitleContainer.getChildAt(index);
             if (v instanceof IPagerTitle) {
-                ((IPagerTitle) v).onDisSelected(index, totalCount);
+                ((IPagerTitle) v).onUnselected(index, totalCount);
             }
         }
     }
@@ -287,8 +287,8 @@ public class ViewPagerIndicatorLayout extends FrameLayout implements IPagerIndic
             int nextPosition = Math.min(mPositionData.size() - 1, position + 1);
             PositionData current = mPositionData.get(currentPosition);
             PositionData next  = mPositionData.get(nextPosition);
-            float scrollTo = current.horizonalCenter() - mScrollView.getWidth() * mScrollPivotX;
-            float nextscrollTo = next.horizonalCenter() - mScrollView.getWidth() * mScrollPivotX;
+            float scrollTo = current.horizontalCenter() - mScrollView.getWidth() * mScrollPivotX;
+            float nextscrollTo = next.horizontalCenter() - mScrollView.getWidth() * mScrollPivotX;
             mScrollView.scrollTo((int)(scrollTo + (nextscrollTo - scrollTo) * positionOffsetPercent), 0);
         }
     }

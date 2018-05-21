@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface IPagerIndicatorView extends IPagerChangeListener {
 
-    void setPostionDataList(List<PositionData> list);
+    void setPositionDataList(List<PositionData> list);
 }

@@ -78,7 +78,7 @@ public class ViewPagerITitleView extends AppCompatTextView implements IViewPager
     }
 
     @Override
-    public void onDisSelected(int index, int totalCount) {
+    public void onUnselected(int index, int totalCount) {
         setTextColor(mNormalColor);//离开时颜色恢复正常
     }
 

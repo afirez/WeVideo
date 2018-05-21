@@ -12,7 +12,7 @@ public interface IPagerTitle {
      */
     void onSelected(int index, int totalCount);
 
-    void onDisSelected(int index, int totalCount);
+    void onUnselected(int index, int totalCount);
 
     /**
      *

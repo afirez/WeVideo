@@ -50,7 +50,7 @@ public class ViewPaperIndicatorView extends View implements IPagerIndicatorView 
     }
 
     @Override
-    public void setPostionDataList(List<PositionData> list) {
+    public void setPositionDataList(List<PositionData> list) {
         mPositionDataList = list;
     }
 
