@@ -17,10 +17,6 @@ public class AppUtils {
         AppUtils.app = app;
     }
 
-    /**
-     * 当前网络是否可用
-     * @return
-     */
     public static boolean isNetWorkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) app.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager == null) {

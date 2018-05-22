@@ -32,6 +32,14 @@ public class Video implements Parcelable {
     @Expose
     private long aid; //专辑id
 
+    private String superUrl;
+
+    private String normalUrl;
+
+    private String highUrl;
+
+    private long mid;
+
     public Long getVid() {
         return vid;
     }
@@ -88,6 +96,38 @@ public class Video implements Parcelable {
         this.aid = aid;
     }
 
+    public String getSuperUrl() {
+        return superUrl;
+    }
+
+    public void setSuperUrl(String superUrl) {
+        this.superUrl = superUrl;
+    }
+
+    public String getNormalUrl() {
+        return normalUrl;
+    }
+
+    public void setNormalUrl(String normalUrl) {
+        this.normalUrl = normalUrl;
+    }
+
+    public String getHighUrl() {
+        return highUrl;
+    }
+
+    public void setHighUrl(String highUrl) {
+        this.highUrl = highUrl;
+    }
+
+    public long getMid() {
+        return mid;
+    }
+
+    public void setMid(long mid) {
+        this.mid = mid;
+    }
+
     @Override
     public String toString() {
         return "Video{" +
@@ -105,30 +145,37 @@ public class Video implements Parcelable {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(this.vid);
-        dest.writeString(this.videoName);
-        dest.writeString(this.horHighPic);
-        dest.writeString(this.verHighPic);
-        dest.writeString(this.title);
-        dest.writeInt(this.site);
-        dest.writeLong(this.aid);
+    private Video(Parcel in) {
+        this.aid = in.readLong();
+        this.vid = in.readLong();
+        this.title = in.readString();
+        this.videoName = in.readString();
+        this.horHighPic = in.readString();
+        this.verHighPic = in.readString();
+        this.superUrl = in.readString();
+        this.normalUrl = in.readString();
+        this.highUrl = in.readString();
+        this.site = in.readInt();
     }
+    //　parcel对象读写序列要对应
+
 
     public Video() {
     }
 
-    protected Video(Parcel in) {
-        this.vid = (Long) in.readValue(Long.class.getClassLoader());
-        this.videoName = in.readString();
-        this.horHighPic = in.readString();
-        this.verHighPic = in.readString();
-        this.title = in.readString();
-        this.site = in.readInt();
-        this.aid = in.readLong();
+    @Override
+    public void writeToParcel(Parcel parcel, int in) {
+        parcel.writeLong(aid);
+        parcel.writeLong(vid);
+        parcel.writeString(title);
+        parcel.writeString(videoName);
+        parcel.writeString(horHighPic);
+        parcel.writeString(verHighPic);
+        parcel.writeString(superUrl);
+        parcel.writeString(normalUrl);
+        parcel.writeString(highUrl);
+        parcel.writeInt(site);
     }
-
     public static final Parcelable.Creator<Video> CREATOR = new Parcelable.Creator<Video>() {
         @Override
         public Video createFromParcel(Parcel source) {

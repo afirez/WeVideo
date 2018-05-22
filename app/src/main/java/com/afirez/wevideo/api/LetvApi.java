@@ -6,6 +6,9 @@ import android.util.Log;
 import com.afirez.wevideo.channel.model.Album;
 import com.afirez.wevideo.channel.model.ErrorInfo;
 import com.afirez.wevideo.channel.model.Site;
+import com.afirez.wevideo.channel.model.Video;
+import com.afirez.wevideo.channel.model.VideoWithType;
+import com.afirez.wevideo.common.utils.MD5;
 import com.afirez.wevideo.common.utils.OkHttpUtils;
 import com.afirez.wevideo.home.model.Channel;
 
@@ -276,4 +279,223 @@ public class LetvApi implements SiteApi {
             }
         });
     }
+
+    @Override
+    public void getVideos(int pageSize, int pageNo, final Album album, final ApiCallback<ArrayList<Video>> callback) {
+        final String url = String.format(ALBUM_VIDEOS_URL_FORMAT, album.getAlbumId(), pageNo, pageSize, "-1", "1");
+        if (callback == null) {
+            return;
+        }
+        OkHttpUtils.execute(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ErrorInfo info = buildErrorInfo(url, "onGetVideo", e, ErrorInfo.ERROR_TYPE_URL);
+                callback.onError(info);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null || !response.isSuccessful()) {
+                    ErrorInfo info = buildErrorInfo(url, "getVideos", null, ErrorInfo.ERROR_TYPE_URL);
+                    callback.onError(info);
+                    return;
+                }
+
+                String json = body.string();
+                try {
+                    JSONObject resultJson = new JSONObject(json);
+                    if (resultJson.optJSONObject("body") != null) {
+                        JSONObject bodyJson = resultJson.optJSONObject("body");
+                        JSONArray jsonArray = bodyJson.optJSONArray("videoInfo");
+                        if (jsonArray != null) {
+                            if (jsonArray.length() > 0) {
+                                ArrayList<Video> videoList = new ArrayList<Video>();
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    Video video = new Video();
+                                    //videoInfo表示每个视频info
+                                    JSONObject videoInfo = jsonArray.getJSONObject(i);
+                                    video.setAid(Long.parseLong(album.getAlbumId()));
+                                    video.setSite(album.getSite().getSiteId());
+                                    //nameCn: "择天记03"
+                                    if (!TextUtils.isEmpty(videoInfo.optString("nameCn"))) {
+                                        video.setVideoName(videoInfo.optString("nameCn"));
+                                    }
+                                    //mid: "64271196" 表示解释乐视视频源需要的
+                                    if (!TextUtils.isEmpty(videoInfo.optString("mid"))) {
+                                        video.setMid(Long.parseLong(videoInfo.optString("mid")));
+                                    }
+                                    if (!TextUtils.isEmpty(videoInfo.optString("id"))) {
+                                        video.setVid(Long.parseLong(videoInfo.optString("id")));
+                                    }
+                                    videoList.add(video);
+                                }
+                                if (videoList.size() > 0) {
+                                    callback.onSuccess(videoList);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    ErrorInfo info = buildErrorInfo(url, "getVideos", null, ErrorInfo.ERROR_TYPE_DATA_CONVERT);
+                    callback.onError(info);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    ErrorInfo info = buildErrorInfo(url, "getVideos", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
+                    callback.onError(info);
+                }
+            }
+        });
+    }
+
+
+    @Override
+    public void getVideoUrl(final Video video, final ApiCallback<VideoWithType> callback) {
+        if (callback == null) {
+            return;
+        }
+        final String url = String.format(VIDEO_FILE_URL_FORMAT, video.getMid(), getCurrentServerTime(), getKey(video, getCurrentServerTime()), video.getVid());
+        OkHttpUtils.execute(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ErrorInfo info = buildErrorInfo(url, "getVideoUrl", e, ErrorInfo.ERROR_TYPE_URL);
+                callback.onError(info);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null && !response.isSuccessful()) {
+                    ErrorInfo info = buildErrorInfo(url, "getVideo", null, ErrorInfo.ERROR_TYPE_URL);
+                    callback.onError(info);
+                    return;
+                }
+
+                String result = response.body().string();
+                try {
+                    JSONObject resultJson = new JSONObject(result);
+                    JSONObject infosJson = resultJson.getJSONObject("body").getJSONObject("videofile").getJSONObject("infos");
+                    if (infosJson != null) {
+                        JSONObject normalInfoObject = infosJson.getJSONObject("mp4_350");
+                        if (normalInfoObject != null) {
+                            String normalUrl = "";
+                            if (!TextUtils.isEmpty(normalInfoObject.optString("mainUrl"))) {
+                                normalUrl = normalInfoObject.optString("mainUrl");
+                                normalUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(normalInfoObject.optString("backUrl1"))) {
+                                normalUrl = normalInfoObject.optString("backUrl1");
+                                normalUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(normalInfoObject.optString("backUrl2"))) {
+                                normalUrl = normalInfoObject.optString("backUrl2");
+                                normalUrl += VIDEO_REAL_LINK_APPENDIX;
+                            }
+                            getRealUrl(video, normalUrl, BITSTREAM_NORMAL, callback);
+                        }
+                        JSONObject highInfoObject = infosJson.getJSONObject("mp4_1000");
+                        if (highInfoObject != null) {
+                            String highUrl = "";
+                            if (!TextUtils.isEmpty(highInfoObject.optString("mainUrl"))) {
+                                highUrl = highInfoObject.optString("mainUrl");
+                                highUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(highInfoObject.optString("backUrl1"))) {
+                                highUrl = highInfoObject.optString("backUrl1");
+                                highUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(highInfoObject.optString("backUrl2"))) {
+                                highUrl = highInfoObject.optString("backUrl2");
+                                highUrl += VIDEO_REAL_LINK_APPENDIX;
+                            }
+                            getRealUrl(video, highUrl, BITSTREAM_HIGH, callback);
+                        }
+                        JSONObject superfoObject = infosJson.getJSONObject("mp4_1300");
+                        if (superfoObject != null) {
+                            String superUrl = "";
+                            if (!TextUtils.isEmpty(superfoObject.optString("mainUrl"))) {
+                                superUrl = superfoObject.optString("mainUrl");
+                                superUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(superfoObject.optString("backUrl1"))) {
+                                superUrl = superfoObject.optString("backUrl1");
+                                superUrl += VIDEO_REAL_LINK_APPENDIX;
+                            } else if (!TextUtils.isEmpty(highInfoObject.optString("backUrl2"))) {
+                                superUrl = superfoObject.optString("backUrl2");
+                                superUrl += VIDEO_REAL_LINK_APPENDIX;
+                            }
+                            getRealUrl(video, superUrl, BITSTREAM_SUPER, callback);
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    ErrorInfo info = buildErrorInfo(url, "getVideos", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
+                    callback.onError(info);
+                }
+            }
+        });
+    }
+
+    private void getRealUrl(final Video video, final String url, final int type, final ApiCallback<VideoWithType> callback) {
+        if (callback == null) {
+            return;
+        }
+        OkHttpUtils.execute(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ErrorInfo info = buildErrorInfo(url, "getRealUrl", e, ErrorInfo.ERROR_TYPE_URL);
+                callback.onError(info);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null && !response.isSuccessful()) {
+                    ErrorInfo info = buildErrorInfo(url, "getRealUrl", null, ErrorInfo.ERROR_TYPE_URL);
+                    callback.onError(info);
+                    return;
+                }
+
+                String realUrl = null;
+                try {
+                    JSONObject jsonObject = new JSONObject(body.string());
+                    realUrl = jsonObject.optString("location");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (realUrl != null) {
+                    switch (type) {
+                        case BITSTREAM_NORMAL:
+                            video.setNormalUrl(realUrl);
+                            callback.onSuccess(new VideoWithType(video, VideoWithType.TYPE_NORMAL, realUrl));
+                            return;
+                        case BITSTREAM_HIGH:
+                            video.setHighUrl(realUrl);
+                            callback.onSuccess(new VideoWithType(video, VideoWithType.TYPE_HIGH, realUrl));
+                            return;
+                        case BITSTREAM_SUPER:
+                            video.setSuperUrl(realUrl);
+                            callback.onSuccess(new VideoWithType(video, VideoWithType.TYPE_SUPER, realUrl));
+                            return;
+                    }
+                }
+                ErrorInfo info = buildErrorInfo(url, "getRealUrl", null, ErrorInfo.ERROR_TYPE_PARSE_JSON);
+                callback.onError(info);
+            }
+        });
+    }
+
+    private String getKey(Video video, String serverTime) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(video.getMid());
+        sb.append(",");
+        sb.append(serverTime);
+        sb.append(",");
+        sb.append("bh65OzqYYYmHRQ");
+        return MD5.toMd5(sb.toString());
+    }
+
+    private String getCurrentServerTime() {
+        if (mTimeOffSet != Long.MAX_VALUE) {
+            return String.valueOf(System.currentTimeMillis() / 1000 - mTimeOffSet);
+        } else {
+            return null;
+        }
+    }
+
 }

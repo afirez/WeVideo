@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,27 +18,30 @@ import com.afirez.wevideo.api.ApiCallback;
 import com.afirez.wevideo.api.SiteApis;
 import com.afirez.wevideo.channel.model.Album;
 import com.afirez.wevideo.channel.model.ErrorInfo;
-import com.afirez.wevideo.channel.model.Site;
 import com.afirez.wevideo.channel.model.Video;
+import com.afirez.wevideo.channel.model.VideoWithType;
 import com.afirez.wevideo.common.BaseActivity;
 import com.afirez.wevideo.common.utils.AppUtils;
 import com.afirez.wevideo.common.utils.ImageUtils;
+import com.afirez.wevideo.player.VideoPlayerActivity;
 
-public class AlbumDetailActivity extends BaseActivity {
+public class AlbumDetailActivity extends BaseActivity implements AlbumDetailGridFragment.OnVideoSelectedListener {
 
     private Album album;
     private int videoNo;
     private boolean isShowDesc;
 
     private ImageView ivAlbumImage;
-    private View viewById;
+
     private TextView tvAlbumName;
     private TextView tvAlbumDirector;
     private TextView tvAlbumMainActor;
     private TextView tvAlbumDescription;
+
     private Button btnSuperBitStream;
     private Button btnHighBitStream;
     private Button btnNormalBitStream;
+
     private AlbumDetailGridFragment mFragment;
 
     public static void launch(Activity activity, Album album) {
@@ -94,12 +98,18 @@ public class AlbumDetailActivity extends BaseActivity {
         @Override
         public void onClick(View v) {
             String url = (String) v.getTag(R.id.key_video_url);
-            int streamType = (int) v.getTag(R.id.key_video_stream);
+            int type = (int) v.getTag(R.id.key_video_stream);
             Video video = (Video) v.getTag(R.id.key_video);
             int currentPosition = (int) v.getTag(R.id.key_current_video_number);
             if (AppUtils.isNetWorkAvailable()) {
                 if (AppUtils.isWifiAvailable()) {
-
+//                    mHistoryDBHelper.add(mAlbum);
+                    Intent intent = new Intent(AlbumDetailActivity.this, VideoPlayerActivity.class);
+                    intent.putExtra("url", url);
+                    intent.putExtra("type", type);
+                    intent.putExtra("currentPosition", currentPosition);
+                    intent.putExtra("video", video);
+                    startActivity(intent);
                 }
             }
         }
@@ -177,10 +187,9 @@ public class AlbumDetailActivity extends BaseActivity {
                     @Override
                     public void run() {
                         updateAlbumInfo();
-                        mFragment =  AlbumDetailGridFragment.newInstance(album, isShowDesc, 0);
-//                        mFragment.setPlayVideoSelectedListener(mPlayVideoSelectedListener);
+                        mFragment = AlbumDetailGridFragment.newInstance(album, isShowDesc, 0);
                         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                        ft.replace(R.id.wv_album_detail_fl_container,mFragment);
+                        ft.replace(R.id.wv_album_detail_fl_container, mFragment);
                         ft.commitAllowingStateLoss();
                     }
                 });
@@ -224,4 +233,59 @@ public class AlbumDetailActivity extends BaseActivity {
         }
     }
 
+    private int curPosition;
+
+    @Override
+    public void onVideoSelected(Video video, int position) {
+        curPosition = position;
+        SiteApis.getInstance().getVideoUrl(video, videoWithTypeCallback);
+    }
+
+    private ApiCallback<VideoWithType> videoWithTypeCallback = new ApiCallback<VideoWithType>() {
+        @Override
+        public void onSuccess(final VideoWithType data) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("video", "run: " + data);
+                    View theView = null;
+                    int type = data.getType();
+                    switch (type) {
+                        case VideoWithType.TYPE_NORMAL:
+                            theView = btnNormalBitStream;
+                            break;
+                        case VideoWithType.TYPE_HIGH:
+                            theView = btnHighBitStream;
+                            break;
+                        case VideoWithType.TYPE_SUPER:
+                            theView = btnSuperBitStream;
+                            break;
+                    }
+                    if (theView != null) {
+                        theView.setVisibility(View.VISIBLE);
+                        theView.setTag(R.id.key_video_url, data.getUrl()); //视频url
+                        theView.setTag(R.id.key_video, data.getVideo());//视频info
+                        theView.setTag(R.id.key_current_video_number, curPosition);//当前视频
+                        theView.setTag(R.id.key_video_stream, type); //码流
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onError(ErrorInfo info) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    hide();
+                }
+            });
+        }
+    };
+
+    private void hide() {
+        btnHighBitStream.setVisibility(View.GONE);
+        btnNormalBitStream.setVisibility(View.GONE);
+        btnSuperBitStream.setVisibility(View.GONE);
+    }
 }

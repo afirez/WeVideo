@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wv_album_detail_btn_item_video_number"
+    android:layout_width="match_parent"
+    android:textSize="14sp"
+    android:background="@drawable/wv_album_detail_ic_btn_item_video_number"
+    android:layout_height="40dp"/>

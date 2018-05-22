@@ -26,7 +26,8 @@
         <activity android:name=".favorite.FavoriteActivity" />
         <activity android:name=".history.HistoryActivity" />
         <activity android:name=".channel.ChannelDetailsActivity" />
-        <activity android:name=".channel.AlbumDetailActivity"/>
+        <activity android:name=".channel.AlbumDetailActivity" />
+        <activity android:name=".player.VideoPlayerActivity"></activity>
     </application>
 
 </manifest>
