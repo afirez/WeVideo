@@ -118,14 +118,14 @@ public class AlbumDetailActivity extends BaseActivity implements AlbumDetailGrid
     private View.OnClickListener highOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            superOnClickListener.onClick(v);
         }
     };
 
     private View.OnClickListener normalOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            superOnClickListener.onClick(v);
         }
     };
 
@@ -186,6 +186,9 @@ public class AlbumDetailActivity extends BaseActivity implements AlbumDetailGrid
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if (isDestroyed() || isFinishing()) {
+                            return;
+                        }
                         updateAlbumInfo();
                         mFragment = AlbumDetailGridFragment.newInstance(album, isShowDesc, 0);
                         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

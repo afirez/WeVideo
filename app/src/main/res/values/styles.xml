@@ -10,4 +10,10 @@
         <item name="windowActionBar">false</item>
     </style>
 
+    <style name="playerSeekBarStyle" parent="@android:style/Widget.SeekBar">
+        <item name="android:maxHeight">3.0dip</item>
+        <item name="android:progressDrawable">@drawable/player_sb_progress_drawable</item>
+        <item name="android:minHeight">3.0dip</item>
+        <item name="android:thumb">@drawable/player_sb_thumb</item>
+    </style>
 </resources>

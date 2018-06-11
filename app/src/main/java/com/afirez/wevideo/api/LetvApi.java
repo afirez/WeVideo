@@ -215,7 +215,7 @@ public class LetvApi implements SiteApi {
 
     private ErrorInfo buildErrorInfo(String url, String functionName, IOException e, int type) {
         ErrorInfo info = new ErrorInfo(Site.LETV, type);
-        info.setExceptionString(e.getMessage());
+        info.setExceptionString(e!= null ? e.getMessage() : "");
         info.setFunctionName(functionName);
         info.setUrl(url);
         info.setTag(TAG);

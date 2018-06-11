@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.afirez.wevideo">
 
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <application
         android:name=".MainApp"
@@ -25,9 +27,11 @@
         <activity android:name=".Live.LiveActivity" />
         <activity android:name=".favorite.FavoriteActivity" />
         <activity android:name=".history.HistoryActivity" />
-        <activity android:name=".channel.ChannelDetailsActivity" />
+        <activity android:name=".channel.ChannelDetailsActivity"/>
         <activity android:name=".channel.AlbumDetailActivity" />
-        <activity android:name=".player.VideoPlayerActivity"></activity>
+        <activity android:name=".player.VideoPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="landscape"/>
     </application>
 
 </manifest>
