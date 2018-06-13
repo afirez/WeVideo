@@ -465,7 +465,12 @@ public class VideoPlayerActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-
+        if (video != null) {
+            tvTitle.setText(video.getVideoName());
+        }
+        if (title != null) {
+            tvTitle.setText(title);
+        }
     }
 
     private Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {

@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.afirez.wevideo.Live.LiveActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <include layout="@layout/common_include_app_bar"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/live_rv_rooms"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingBottom="5dp"
+        android:layout_marginBottom="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>
